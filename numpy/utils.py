@@ -1,4 +1,7 @@
-from base import Matrix
+try:
+    from .base import Matrix
+except ImportError:
+    from base import Matrix
 import random
 
 

@@ -1,16 +1,35 @@
 class Matrix:
     def __init__(self, data=None, shape=None, fill_value=0):
         """
-        Инициализация матрицы
+        Basic Operations:
+        - __init__: Initialize matrix with data or shape
+        - __str__: String representation of matrix
+        - __repr__: String representation (same as str)
+        - __getitem__: Get element or submatrix by index
+        - __setitem__: Set element value
+        - copy: Create a copy of matrix
 
-        Параметры:
-        ----------
-        data : list или Matrix, опционально
-            Данные для инициализации матрицы
-        shape : tuple, опционально
-            Размерность матрицы (строки, столбцы)
-        fill_value : число, опционально
-            Значение для заполнения матрицы, если указан shape
+        Arithmetic Operations:
+        - __add__, __radd__: Matrix addition
+        - __sub__, __rsub__: Matrix subtraction
+        - __mul__, __rmul__: Element-wise multiplication
+        - __truediv__, __rtruediv__: Element-wise division
+        - __neg__: Unary minus
+        - __eq__: Matrix equality comparison
+
+        Matrix Operations:
+        - dot: Matrix multiplication
+        - T: Matrix transpose
+        - det: Matrix determinant
+        - inverse: Matrix inverse
+        - rank: Matrix rank
+        - trace: Matrix trace
+        - diag: Get matrix diagonal
+
+        Statistical Operations:
+        - mean: Calculate mean (by axis or overall)
+        - apply: Apply function to each element
+        - shape: Get matrix dimensions
         """
         if data is not None:
             if isinstance(data, Matrix):
@@ -45,7 +64,7 @@ class Matrix:
         return "\n".join(rows)
 
     def __repr__(self):
-        return f"Matrix(shape={self.shape})"
+        return self.__str__()
 
     def __getitem__(self, indices):
         """Получение элемента или подматрицы"""
@@ -266,7 +285,7 @@ class Matrix:
 
         return True
 
-    def dot(self, other):
+    def __matmul__(self, other):
         """Матричное умножение"""
         if not isinstance(other, Matrix):
             other = Matrix(other)
@@ -287,7 +306,8 @@ class Matrix:
 
         return result
 
-    def transpose(self):
+    @property
+    def T(self):
         """Транспонирование матрицы"""
         result = Matrix(shape=(self.shape[1], self.shape[0]))
 
@@ -296,10 +316,6 @@ class Matrix:
                 result[j, i] = self.data[i][j]
 
         return result
-
-    def T(self):
-        """Свойство для транспонирования (как в NumPy)"""
-        return self.transpose()
 
     def det(self):
         """Вычисление определителя матрицы"""
@@ -369,7 +385,7 @@ class Matrix:
                 cofactors[i, j] = sign * Matrix(submatrix).det()
 
         # Транспонируем матрицу алгебраических дополнений и делим на определитель
-        return cofactors.transpose() * (1 / det)
+        return cofactors.T * (1 / det)
 
     def rank(self):
         """Вычисление ранга матрицы"""
@@ -467,84 +483,6 @@ class Matrix:
         else:
             raise ValueError("Параметр axis должен быть None, 0 или 1")
 
-    def max(self, axis=None):
-        """Максимальное значение в матрице"""
-        if not self.data:
-            raise ValueError("Матрица пуста")
-
-        if axis is None:
-            # Максимум среди всех элементов
-            max_val = self.data[0][0]
-            for i in range(self.shape[0]):
-                for j in range(self.shape[1]):
-                    if self.data[i][j] > max_val:
-                        max_val = self.data[i][j]
-            return max_val
-
-        elif axis == 0:
-            # Максимум по столбцам
-            result = []
-            for j in range(self.shape[1]):
-                max_val = self.data[0][j]
-                for i in range(1, self.shape[0]):
-                    if self.data[i][j] > max_val:
-                        max_val = self.data[i][j]
-                result.append(max_val)
-            return result
-
-        elif axis == 1:
-            # Максимум по строкам
-            result = []
-            for i in range(self.shape[0]):
-                max_val = self.data[i][0]
-                for j in range(1, self.shape[1]):
-                    if self.data[i][j] > max_val:
-                        max_val = self.data[i][j]
-                result.append(max_val)
-            return result
-
-        else:
-            raise ValueError("Параметр axis должен быть None, 0 или 1")
-
-    def min(self, axis=None):
-        """Минимальное значение в матрице"""
-        if not self.data:
-            raise ValueError("Матрица пуста")
-
-        if axis is None:
-            # Минимум среди всех элементов
-            min_val = self.data[0][0]
-            for i in range(self.shape[0]):
-                for j in range(self.shape[1]):
-                    if self.data[i][j] < min_val:
-                        min_val = self.data[i][j]
-            return min_val
-
-        elif axis == 0:
-            # Минимум по столбцам
-            result = []
-            for j in range(self.shape[1]):
-                min_val = self.data[0][j]
-                for i in range(1, self.shape[0]):
-                    if self.data[i][j] < min_val:
-                        min_val = self.data[i][j]
-                result.append(min_val)
-            return result
-
-        elif axis == 1:
-            # Минимум по строкам
-            result = []
-            for i in range(self.shape[0]):
-                min_val = self.data[i][0]
-                for j in range(1, self.shape[1]):
-                    if self.data[i][j] < min_val:
-                        min_val = self.data[i][j]
-                result.append(min_val)
-            return result
-
-        else:
-            raise ValueError("Параметр axis должен быть None, 0 или 1")
-
     def apply(self, func):
         """Применяет функцию к каждому элементу матрицы"""
         result = Matrix(shape=self.shape)
@@ -556,3 +494,11 @@ class Matrix:
     def copy(self):
         """Создает копию матрицы"""
         return Matrix(self)
+
+    def shape(self):
+        """Возвращает размерность матрицы"""
+        return self.shape
+
+
+class array(Matrix):
+    pass

@@ -1,18 +1,26 @@
-from .array import Array, array
-from .matrix import Matrix, matrix
-from .linalg import det, inv, solve, rank, transpose, trace, eigenvalues, eigenvectors
+from .base import Matrix, array
+from .utils import (
+    zeros,
+    ones,
+    eye,
+    random_matrix,
+    diag,
+    concatenate,
+    vstack,
+    hstack,
+    solve,
+)
 
 __all__ = [
-    "Array",
-    "array",
     "Matrix",
-    "matrix",
-    "det",
-    "inv",
+    "array",
+    "zeros",
+    "ones",
+    "eye",
+    "random_matrix",
+    "diag",
+    "concatenate",
+    "vstack",
+    "hstack",
     "solve",
-    "rank",
-    "transpose",
-    "trace",
-    "eigenvalues",
-    "eigenvectors",
 ]

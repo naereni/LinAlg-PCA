@@ -10,23 +10,23 @@ class TestMatrixLinAlg(unittest.TestCase):
         m1 = Matrix([[1, 2, 3], [4, 5, 6]])
         m2 = Matrix([[7, 8], [9, 10], [11, 12]])
 
-        result = m1.dot(m2)
+        result = m1 @ m2
         self.assertEqual(result.shape, (2, 2))
         self.assertEqual(result.data, [[58, 64], [139, 154]])
 
         m3 = Matrix([[1, 2], [3, 4]])
         with self.assertRaises(ValueError):
-            m1.dot(m3)
+            m1 @ m3
 
     def test_transpose(self):
         """Тестирование транспонирования матрицы"""
         m = Matrix([[1, 2, 3], [4, 5, 6]])
 
-        result = m.transpose()
+        result = m.T
         self.assertEqual(result.shape, (3, 2))
         self.assertEqual(result.data, [[1, 4], [2, 5], [3, 6]])
 
-        result = m.T()
+        result = m.T
         self.assertEqual(result.shape, (3, 2))
         self.assertEqual(result.data, [[1, 4], [2, 5], [3, 6]])
 
@@ -53,7 +53,7 @@ class TestMatrixLinAlg(unittest.TestCase):
         inv = m.inverse()
         self.assertEqual(inv.shape, (2, 2))
 
-        result = m.dot(inv)
+        result = m @ inv
         for i in range(2):
             for j in range(2):
                 if i == j:

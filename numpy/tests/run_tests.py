@@ -4,7 +4,6 @@ import sys
 from test_matrix_basic import TestMatrixBasic
 from test_matrix_arithmetic import TestMatrixArithmetic
 from test_matrix_linalg import TestMatrixLinAlg
-from test_matrix_stats import TestMatrixStats
 from test_utils import TestUtils
 
 
@@ -15,7 +14,6 @@ def run_tests():
     suite.addTest(loader.loadTestsFromTestCase(TestMatrixBasic))
     suite.addTest(loader.loadTestsFromTestCase(TestMatrixArithmetic))
     suite.addTest(loader.loadTestsFromTestCase(TestMatrixLinAlg))
-    suite.addTest(loader.loadTestsFromTestCase(TestMatrixStats))
     suite.addTest(loader.loadTestsFromTestCase(TestUtils))
 
     runner = unittest.TextTestRunner(verbosity=2)
