@@ -1,35 +1,33 @@
 class Matrix:
     def __init__(self, data=None, shape=None, fill_value=0):
         """
-        Basic Operations:
-        - __init__: Initialize matrix with data or shape
-        - __str__: String representation of matrix
-        - __repr__: String representation (same as str)
-        - __getitem__: Get element or submatrix by index
-        - __setitem__: Set element value
-        - copy: Create a copy of matrix
+        Basic Matrix Operations:
+        - __init__: Create matrix from data or shape
+        - __str__, __repr__: String representations
+        - __getitem__: Access elements/submatrices
+        - __setitem__: Modify elements
+        - astype: Convert elements to new type
+        - swap: Swap rows or columns
+        - div: Divide row/column by scalar
+        - comb: Add scaled row/column to another
 
         Arithmetic Operations:
-        - __add__, __radd__: Matrix addition
-        - __sub__, __rsub__: Matrix subtraction
+        - __add__, __radd__: Addition (matrix + matrix, scalar + matrix)
+        - __sub__, __rsub__: Subtraction (matrix - matrix, scalar - matrix) 
         - __mul__, __rmul__: Element-wise multiplication
         - __truediv__, __rtruediv__: Element-wise division
+        - __matmul__: Matrix multiplication
         - __neg__: Unary minus
-        - __eq__: Matrix equality comparison
+        - __eq__: Equality comparison
 
-        Matrix Operations:
-        - dot: Matrix multiplication
-        - T: Matrix transpose
-        - det: Matrix determinant
-        - inverse: Matrix inverse
+        Linear Algebra Operations:
+        - T: Transpose
+        - det: Determinant
+        - inv: Inverse matrix
         - rank: Matrix rank
-        - trace: Matrix trace
-        - diag: Get matrix diagonal
-
-        Statistical Operations:
-        - mean: Calculate mean (by axis or overall)
-        - apply: Apply function to each element
-        - shape: Get matrix dimensions
+        
+        Properties:
+        - shape: Matrix dimensions (rows, columns)
         """
         if data is not None:
             if isinstance(data, Matrix):
