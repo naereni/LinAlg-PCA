@@ -1,17 +1,25 @@
 from .base import Matrix, array
 from .utils import (
+    EPS,
     zeros,
     ones,
     eye,
     random_matrix,
     diag,
-    concatenate,
+    concat,
     vstack,
     hstack,
     solve,
+    abs,
+    argmax,
+    mean,
+    sum,
 )
 
 __all__ = [
+    "mean",
+    "sum",
+    "EPS",
     "Matrix",
     "array",
     "zeros",
@@ -19,8 +27,10 @@ __all__ = [
     "eye",
     "random_matrix",
     "diag",
-    "concatenate",
+    "concat",
     "vstack",
     "hstack",
     "solve",
+    "abs",
+    "argmax",
 ]

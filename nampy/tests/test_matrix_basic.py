@@ -64,16 +64,6 @@ class TestMatrixBasic(unittest.TestCase):
         m1[0, 0] = 99
         self.assertNotEqual(m1[0, 0], m2[0, 0])
 
-    def test_mean(self):
-        """Тестирование вычисления среднего значения элементов матрицы"""
-        m = Matrix([[1, 2, 3], [4, 5, 6]])
-
-        self.assertEqual(m.mean(), 3.5)
-
-        self.assertEqual(m.mean(axis=0), [2.5, 3.5, 4.5])
-
-        self.assertEqual(m.mean(axis=1), [2, 5])
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -33,13 +33,68 @@ class Matrix:
         """
         if data is not None:
             if isinstance(data, Matrix):
-                self.data = [row[:] for row in data.data]
+                self.data = [list(row) for row in data.data]
                 self.shape = data.shape
             else:
-                self.data = [row[:] for row in data]
-                self.shape = (len(data), len(data[0]) if data else 0)
+                if not isinstance(data, list):
+                    raise TypeError("Входные данные 'data' должны быть списком.")
+
+                if not data:
+                    self.data = []
+                    self.shape = (0, 0)
+
+                else:
+                    # Проверяем, является ли первый элемент списком (признак 2D структуры)
+                    is_list_of_lists = isinstance(data[0], list)
+
+                    if is_list_of_lists:
+                        # Обработка списка списков (2D)
+                        if not all(isinstance(row, list) for row in data):
+                            raise TypeError(
+                                "Входные данные 'data' должны быть списком списков."
+                            )
+
+                        rows = len(data)
+                        cols = len(data[0])
+
+                        processed_data = []
+                        for i, row in enumerate(data):
+                            if len(row) != cols:
+                                raise ValueError(
+                                    f"Несогласованная длина строк: строка {i} имеет длину {len(row)}, ожидалось {cols}."
+                                )
+                            processed_data.append(list(row))  # Копируем строку
+
+                        self.data = processed_data
+                        self.shape = (rows, cols)
+                    else:
+                        # Обработка одномерного списка (1D) -> создаем матрицу-строку (1, n)
+                        if any(isinstance(item, list) for item in data):
+                            raise ValueError(
+                                "Смешанные типы в одномерном списке не поддерживаются для создания матрицы."
+                            )
+
+                        rows = 1
+                        cols = len(data)
+                        self.data = [list(data)]
+                        self.shape = (rows, cols)
+
         elif shape is not None:
+            if not isinstance(shape, tuple) or len(shape) != 2:
+                raise ValueError(
+                    "Параметр 'shape' должен быть кортежем из двух целых чисел (rows, cols)."
+                )
             rows, cols = shape
+            if (
+                not isinstance(rows, int)
+                or not isinstance(cols, int)
+                or rows < 0
+                or cols < 0
+            ):
+                raise ValueError(
+                    "Размеры матрицы (rows, cols) должны быть неотрицательными целыми числами."
+                )
+
             self.data = [[fill_value for _ in range(cols)] for _ in range(rows)]
             self.shape = shape
         else:
@@ -306,6 +361,103 @@ class Matrix:
 
         return result
 
+    def astype(self, dtype):
+        result = Matrix(shape=self.shape)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                result[i, j] = dtype(self.data[i][j])
+        return result
+
+    def swap(self, i, j, axis=0):
+        """
+        Меняет местами две строки (axis=0) или два столбца (axis=1).
+        """
+        rows, cols = self.shape
+        if axis == 0:
+            if i < 0 or i >= rows or j < 0 or j >= rows:
+                raise IndexError("Индексы строк вне диапазона")
+            if i == j:
+                return self  # Нет смысла менять строку саму с собой
+            self.data[i], self.data[j] = self.data[j], self.data[i]
+
+        elif axis == 1:
+            if i < 0 or i >= cols or j < 0 or j >= cols:
+                raise IndexError("Индексы столбцов вне диапазона")
+            if i == j:
+                return self  # Нет смысла менять столбец сам с собой
+            for row_idx in range(rows):
+                self.data[row_idx][i], self.data[row_idx][j] = (
+                    self.data[row_idx][j],
+                    self.data[row_idx][i],
+                )
+        else:
+            raise ValueError("Параметр 'axis' должен быть 0 (строки) или 1 (столбцы)")
+        return self
+
+    def div(self, index, k, axis=0):
+        """
+        Делит строку (axis=0) или столбец (axis=1) с индексом 'index' на скаляр 'k'.
+        """
+        rows, cols = self.shape
+        if k == 0:
+            raise ValueError("Деление на ноль невозможно")
+
+        if axis == 0:  # Делим строку
+            if index < 0 or index >= rows:
+                raise IndexError("Индекс строки вне диапазона")
+            for j in range(cols):
+                self.data[index][j] /= k
+
+        elif axis == 1:  # Делим столбец
+            if index < 0 or index >= cols:
+                raise IndexError("Индекс столбца вне диапазона")
+            for i in range(rows):
+                self.data[i][index] /= k
+        else:
+            raise ValueError("Параметр 'axis' должен быть 0 (строки) или 1 (столбцы)")
+        return self
+
+    def comb(self, target_idx, source_idx, k, axis=0):
+        """
+        Прибавляет к строке/столбцу target_idx строку/столбец source_idx, умноженную на k.
+        axis=0: target_row += k * source_row
+        axis=1: target_col += k * source_col
+        """
+        rows, cols = self.shape
+        if axis == 0:  # Комбинируем строки
+            if (
+                target_idx < 0
+                or target_idx >= rows
+                or source_idx < 0
+                or source_idx >= rows
+            ):
+                raise IndexError("Индексы строк вне диапазона")
+            if target_idx == source_idx:
+                return self
+            for col in range(cols):
+                self.data[target_idx][col] += k * self.data[source_idx][col]
+
+        elif axis == 1:
+            if (
+                target_idx < 0
+                or target_idx >= cols
+                or source_idx < 0
+                or source_idx >= cols
+            ):
+                raise IndexError("Индексы столбцов вне диапазона")
+            if target_idx == source_idx:
+                return self
+            for row in range(rows):
+                self.data[row][target_idx] += k * self.data[row][source_idx]
+        else:
+            raise ValueError("Параметр 'axis' должен быть 0 (строки) или 1 (столбцы)")
+        return self
+
+    # Оставляем старое имя для обратной совместимости
+    def comb_rows(self, i, j, k):
+        """Прибавляет k * строку j к строке i (для совместимости). Используйте comb_lines(i, j, k, axis=0)."""
+        return self.comb(i, j, k, axis=0)
+
     @property
     def T(self):
         """Транспонирование матрицы"""
@@ -317,6 +469,7 @@ class Matrix:
 
         return result
 
+    @property
     def det(self):
         """Вычисление определителя матрицы"""
         if self.shape[0] != self.shape[1]:
@@ -345,18 +498,19 @@ class Matrix:
 
             # Рекурсивно вычисляем определитель подматрицы
             sign = (-1) ** j
-            determinant += sign * self.data[0][j] * Matrix(submatrix).det()
+            determinant += sign * self.data[0][j] * Matrix(submatrix).det
 
         return determinant
 
-    def inverse(self):
+    @property
+    def inv(self):
         """Вычисление обратной матрицы"""
         if self.shape[0] != self.shape[1]:
             raise ValueError(
                 "Обратную матрицу можно вычислить только для квадратной матрицы"
             )
 
-        det = self.det()
+        det = self.det
         if abs(det) < 1e-10:
             raise ValueError("Матрица вырожденная, обратной не существует")
 
@@ -382,11 +536,12 @@ class Matrix:
 
                 # Вычисляем минор и алгебраическое дополнение
                 sign = (-1) ** (i + j)
-                cofactors[i, j] = sign * Matrix(submatrix).det()
+                cofactors[i, j] = sign * Matrix(submatrix).det
 
         # Транспонируем матрицу алгебраических дополнений и делим на определитель
         return cofactors.T * (1 / det)
 
+    @property
     def rank(self):
         """Вычисление ранга матрицы"""
         # Создаем копию матрицы для приведения к ступенчатому виду
@@ -419,6 +574,7 @@ class Matrix:
 
         return rank
 
+    @property
     def trace(self):
         """Вычисление следа матрицы"""
         if self.shape[0] != self.shape[1]:
@@ -430,58 +586,11 @@ class Matrix:
 
         return trace_sum
 
+    @property
     def diag(self):
         """Возвращает диагональ матрицы в виде списка"""
         min_dim = min(self.shape)
         return [self.data[i][i] for i in range(min_dim)]
-
-    def sum(self, axis=None):
-        """Суммирование элементов матрицы"""
-        if axis is None:
-            # Сумма всех элементов
-            total = 0
-            for i in range(self.shape[0]):
-                for j in range(self.shape[1]):
-                    total += self.data[i][j]
-            return total
-
-        elif axis == 0:
-            # Сумма по столбцам
-            result = [0] * self.shape[1]
-            for j in range(self.shape[1]):
-                for i in range(self.shape[0]):
-                    result[j] += self.data[i][j]
-            return result
-
-        elif axis == 1:
-            # Сумма по строкам
-            result = [0] * self.shape[0]
-            for i in range(self.shape[0]):
-                for j in range(self.shape[1]):
-                    result[i] += self.data[i][j]
-            return result
-
-        else:
-            raise ValueError("Параметр axis должен быть None, 0 или 1")
-
-    def mean(self, axis=None):
-        """Среднее значение элементов матрицы"""
-        if axis is None:
-            # Среднее всех элементов
-            return self.sum() / (self.shape[0] * self.shape[1])
-
-        elif axis == 0:
-            # Среднее по столбцам
-            sums = self.sum(axis=0)
-            return [s / self.shape[0] for s in sums]
-
-        elif axis == 1:
-            # Среднее по строкам
-            sums = self.sum(axis=1)
-            return [s / self.shape[1] for s in sums]
-
-        else:
-            raise ValueError("Параметр axis должен быть None, 0 или 1")
 
     def apply(self, func):
         """Применяет функцию к каждому элементу матрицы"""
@@ -494,10 +603,6 @@ class Matrix:
     def copy(self):
         """Создает копию матрицы"""
         return Matrix(self)
-
-    def shape(self):
-        """Возвращает размерность матрицы"""
-        return self.shape
 
 
 class array(Matrix):
