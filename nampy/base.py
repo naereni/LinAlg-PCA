@@ -13,7 +13,7 @@ class Matrix:
 
         Arithmetic Operations:
         - __add__, __radd__: Addition (matrix + matrix, scalar + matrix)
-        - __sub__, __rsub__: Subtraction (matrix - matrix, scalar - matrix) 
+        - __sub__, __rsub__: Subtraction (matrix - matrix, scalar - matrix)
         - __mul__, __rmul__: Element-wise multiplication
         - __truediv__, __rtruediv__: Element-wise division
         - __matmul__: Matrix multiplication
@@ -25,7 +25,7 @@ class Matrix:
         - det: Determinant
         - inv: Inverse matrix
         - rank: Matrix rank
-        
+
         Properties:
         - shape: Matrix dimensions (rows, columns)
         """

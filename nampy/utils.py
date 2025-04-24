@@ -5,7 +5,10 @@ except ImportError:
 import random
 import math
 
-EPS = 1e-10
+
+EPS = 1e-6
+INF = float("inf")
+NINF = float("-inf")
 
 
 def zeros(shape):
@@ -80,7 +83,7 @@ def concat(matrices, axis=0):
 
         result_data = []
         for matrix in matrices:
-            result_data.extend([row[:] for row in matrix.data])
+            result_data.extend([row for row in matrix.data])
 
         return Matrix(result_data)
 

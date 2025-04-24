@@ -1,36 +1,17 @@
 from .base import Matrix, array
-from .utils import (
-    EPS,
-    zeros,
-    ones,
-    eye,
-    random_matrix,
-    diag,
-    concat,
-    vstack,
-    hstack,
-    solve,
-    abs,
-    argmax,
-    mean,
-    sum,
-)
+from . import utils
+import types
 
-__all__ = [
-    "mean",
-    "sum",
-    "EPS",
-    "Matrix",
-    "array",
-    "zeros",
-    "ones",
-    "eye",
-    "random_matrix",
-    "diag",
-    "concat",
-    "vstack",
-    "hstack",
-    "solve",
-    "abs",
-    "argmax",
+_utils_exports = [
+    name
+    for name in dir(utils)
+    if not name.startswith("_")
+    and isinstance(
+        getattr(utils, name),
+        (types.FunctionType, int, float, str, list, dict, set, tuple),
+    )
 ]
+
+globals().update({name: getattr(utils, name) for name in _utils_exports})
+
+__all__ = ["Matrix", "array"] + _utils_exports
