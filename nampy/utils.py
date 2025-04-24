@@ -6,7 +6,7 @@ import random
 import math
 
 
-EPS = 1e-6
+EPS = 1e-10
 INF = float("inf")
 NINF = float("-inf")
 
@@ -243,3 +243,29 @@ def mean(matrix, axis=None):
 
     else:
         raise ValueError("Параметр axis должен быть None, 0 или 1")
+
+
+def clip(x):
+    """
+    Clips values that are very close to integers within EPS tolerance.
+    For example, 0.99999 becomes 1.0 if the difference is less than EPS.
+    """
+    if isinstance(x, (int, float)):
+        # Check if x is very close to an integer
+        nearest_int = round(x)
+        if math.fabs(x - nearest_int) < EPS:
+            return nearest_int
+        return x
+    elif isinstance(x, Matrix):
+        # Use the matrix abs function defined above
+        diff = abs(Matrix([[round(val) - val for val in row] for row in x.data]))
+        result_data = [
+            [
+                round(x.data[i][j]) if diff.data[i][j] < EPS else x.data[i][j]
+                for j in range(x.shape[1])
+            ]
+            for i in range(x.shape[0])
+        ]
+        return Matrix(result_data)
+    else:
+        raise TypeError("Input must be a number or Matrix object")

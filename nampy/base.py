@@ -1,5 +1,5 @@
 class Matrix:
-    def __init__(self, data=None, shape=None, fill_value=0):
+    def __init__(self, data=None, shape=None, fill_value=0.0):
         """
         Basic Matrix Operations:
         - __init__: Create matrix from data or shape
@@ -74,7 +74,7 @@ class Matrix:
 
                         rows = 1
                         cols = len(data)
-                        self.data = [list(data)]
+                        self.data = [[float(val) for val in data]]
                         self.shape = (rows, cols)
 
         elif shape is not None:
@@ -93,7 +93,7 @@ class Matrix:
                     "Размеры матрицы (rows, cols) должны быть неотрицательными целыми числами."
                 )
 
-            self.data = [[fill_value for _ in range(cols)] for _ in range(rows)]
+            self.data = [[float(fill_value) for _ in range(cols)] for _ in range(rows)]
             self.shape = shape
         else:
             self.data = []
@@ -118,6 +118,24 @@ class Matrix:
 
     def __repr__(self):
         return self.__str__()
+
+    def __iter__(self):
+        """
+        Позволяет итерировать по матрице.
+        Для обычных матриц итерация идет по строкам.
+        Для матрицы-строки (1, n) или матрицы-столбца (n, 1) итерация идет по элементам.
+        """
+        rows, cols = self.shape
+
+        if rows == 1:
+            for j in range(cols):
+                yield self.data[0][j]
+        elif cols == 1:
+            for i in range(rows):
+                yield self.data[i][0]
+        else:
+            for i in range(rows):
+                yield self.data[i]
 
     def __getitem__(self, indices):
         """Получение элемента или подматрицы"""
@@ -147,7 +165,7 @@ class Matrix:
         if isinstance(indices, tuple):
             i, j = indices
             if isinstance(i, int) and isinstance(j, int):
-                self.data[i][j] = value
+                self.data[i][j] = float(value)
             else:
                 raise IndexError("Поддерживается только установка отдельных элементов")
         else:
