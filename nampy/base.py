@@ -1,4 +1,4 @@
-class Matrix:
+class array:
     def __init__(self, data=None, shape=None, fill_value=0.0):
         """
         Basic Matrix Operations:
@@ -30,7 +30,7 @@ class Matrix:
         - shape: Matrix dimensions (rows, columns)
         """
         if data is not None:
-            if isinstance(data, Matrix):
+            if isinstance(data, array):
                 self.data = [list(row) for row in data.data]
                 self.shape = data.shape
             else:
@@ -61,7 +61,7 @@ class Matrix:
                                 raise ValueError(
                                     f"Несогласованная длина строк: строка {i} имеет длину {len(row)}, ожидалось {cols}."
                                 )
-                            processed_data.append(list(row))  # Копируем строку
+                            processed_data.append([float(val) for val in row])
 
                         self.data = processed_data
                         self.shape = (rows, cols)
@@ -143,6 +143,20 @@ class Matrix:
             i, j = indices
             if isinstance(i, int) and isinstance(j, int):
                 return self.data[i][j]
+            elif isinstance(i, slice) and isinstance(j, int):
+                i_start, i_stop, i_step = i.indices(self.shape[0])
+                column = []
+                for row_idx in range(i_start, i_stop, i_step):
+                    column.append(
+                        [self.data[row_idx][j]]
+                    )  # Оборачиваем в список для создания столбца
+                return array(column)
+            elif isinstance(i, int) and isinstance(j, slice):
+                j_start, j_stop, j_step = j.indices(self.shape[1])
+                row = []
+                for col_idx in range(j_start, j_stop, j_step):
+                    row.append(self.data[i][col_idx])
+                return array([row])  # Оборачиваем в список для создания строки
             elif isinstance(i, slice) and isinstance(j, slice):
                 i_start, i_stop, i_step = i.indices(self.shape[0])
                 j_start, j_stop, j_step = j.indices(self.shape[1])
@@ -154,7 +168,7 @@ class Matrix:
                         new_row.append(self.data[row_idx][col_idx])
                     result.append(new_row)
 
-                return Matrix(result)
+                return array(result)
         elif isinstance(indices, int):
             return self.data[indices]
 
@@ -166,32 +180,68 @@ class Matrix:
             i, j = indices
             if isinstance(i, int) and isinstance(j, int):
                 self.data[i][j] = float(value)
+            elif isinstance(i, slice) and isinstance(j, int):
+                i_start, i_stop, i_step = i.indices(self.shape[0])
+                rows_count = (i_stop - i_start + i_step - 1) // i_step
+
+                if isinstance(value, list):
+                    if len(value) != rows_count:
+                        raise ValueError(
+                            f"Размер списка ({len(value)}) не соответствует количеству строк ({rows_count})"
+                        )
+
+                    idx = 0
+                    for row_idx in range(i_start, i_stop, i_step):
+                        self.data[row_idx][j] = float(value[idx])
+                        idx += 1
+                else:
+                    for row_idx in range(i_start, i_stop, i_step):
+                        self.data[row_idx][j] = float(value)
+            elif isinstance(i, int) and isinstance(j, slice):
+                j_start, j_stop, j_step = j.indices(self.shape[1])
+                cols_count = (j_stop - j_start + j_step - 1) // i_step
+
+                if isinstance(value, list):
+                    if len(value) != cols_count:
+                        raise ValueError(
+                            f"Размер списка ({len(value)}) не соответствует количеству столбцов ({cols_count})"
+                        )
+
+                    idx = 0
+                    for col_idx in range(j_start, j_stop, j_step):
+                        self.data[i][col_idx] = float(value[idx])
+                        idx += 1
+                else:
+                    for col_idx in range(j_start, j_stop, j_step):
+                        self.data[i][col_idx] = float(value)
             else:
-                raise IndexError("Поддерживается только установка отдельных элементов")
+                raise IndexError(
+                    "Поддерживается только установка отдельных элементов, строк или столбцов"
+                )
         else:
             raise IndexError("Требуется кортеж индексов (строка, столбец)")
 
     def __add__(self, other):
         """Сложение матриц"""
         if isinstance(other, (int, float)):
-            result = Matrix(shape=self.shape)
+            result = array(shape=self.shape)
             for i in range(self.shape[0]):
                 for j in range(self.shape[1]):
-                    result[i, j] = self.data[i][j] + other
+                    result[i, j] = self[i, j] + other
             return result
 
-        if not isinstance(other, Matrix):
-            other = Matrix(other)
+        if not isinstance(other, array):
+            other = array(other)
 
         if self.shape != other.shape:
             raise ValueError(
                 f"Невозможно сложить матрицы разных размеров: {self.shape} и {other.shape}"
             )
 
-        result = Matrix(shape=self.shape)
+        result = array(shape=self.shape)
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
-                result[i, j] = self.data[i][j] + other.data[i][j]
+                result[i, j] = self[i, j] + other[i, j]
 
         return result
 
@@ -201,45 +251,45 @@ class Matrix:
     def __sub__(self, other):
         """Вычитание матриц"""
         if isinstance(other, (int, float)):
-            result = Matrix(shape=self.shape)
+            result = array(shape=self.shape)
             for i in range(self.shape[0]):
                 for j in range(self.shape[1]):
-                    result[i, j] = self.data[i][j] - other
+                    result[i, j] = self[i, j] - other
             return result
 
-        if not isinstance(other, Matrix):
-            other = Matrix(other)
+        if not isinstance(other, array):
+            other = array(other)
 
         if self.shape != other.shape:
             raise ValueError(
                 f"Невозможно вычесть матрицы разных размеров: {self.shape} и {other.shape}"
             )
 
-        result = Matrix(shape=self.shape)
+        result = array(shape=self.shape)
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
-                result[i, j] = self.data[i][j] - other.data[i][j]
+                result[i, j] = self[i, j] - other[i, j]
 
         return result
 
     def __rsub__(self, other):
         """Вычитание справа"""
         if isinstance(other, (int, float)):
-            result = Matrix(shape=self.shape)
+            result = array(shape=self.shape)
             for i in range(self.shape[0]):
                 for j in range(self.shape[1]):
                     result[i, j] = other - self.data[i][j]
             return result
 
-        if not isinstance(other, Matrix):
-            other = Matrix(other)
+        if not isinstance(other, array):
+            other = array(other)
 
         if self.shape != other.shape:
             raise ValueError(
                 f"Невозможно вычесть матрицы разных размеров: {self.shape} и {other.shape}"
             )
 
-        result = Matrix(shape=self.shape)
+        result = array(shape=self.shape)
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
                 result[i, j] = other.data[i][j] - self.data[i][j]
@@ -249,24 +299,24 @@ class Matrix:
     def __mul__(self, other):
         """Поэлементное умножение матриц или умножение на скаляр"""
         if isinstance(other, (int, float)):
-            result = Matrix(shape=self.shape)
+            result = array(shape=self.shape)
             for i in range(self.shape[0]):
                 for j in range(self.shape[1]):
-                    result[i, j] = self.data[i][j] * other
+                    result[i, j] = self[i, j] * other
             return result
 
-        if not isinstance(other, Matrix):
-            other = Matrix(other)
+        if not isinstance(other, array):
+            other = array(other)
 
         if self.shape != other.shape:
             raise ValueError(
                 f"Невозможно умножить поэлементно матрицы разных размеров: {self.shape} и {other.shape}"
             )
 
-        result = Matrix(shape=self.shape)
+        result = array(shape=self.shape)
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
-                result[i, j] = self.data[i][j] * other.data[i][j]
+                result[i, j] = self[i, j] * other[i, j]
 
         return result
 
@@ -279,33 +329,33 @@ class Matrix:
             if other == 0:
                 raise ZeroDivisionError("Деление на ноль")
 
-            result = Matrix(shape=self.shape)
+            result = array(shape=self.shape)
             for i in range(self.shape[0]):
                 for j in range(self.shape[1]):
-                    result[i, j] = self.data[i][j] / other
+                    result[i, j] = self[i, j] / other
             return result
 
-        if not isinstance(other, Matrix):
-            other = Matrix(other)
+        if not isinstance(other, array):
+            other = array(other)
 
         if self.shape != other.shape:
             raise ValueError(
                 f"Невозможно разделить поэлементно матрицы разных размеров: {self.shape} и {other.shape}"
             )
 
-        result = Matrix(shape=self.shape)
+        result = array(shape=self.shape)
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
-                if other.data[i][j] == 0:
+                if other[i, j] == 0:
                     raise ZeroDivisionError("Деление на ноль")
-                result[i, j] = self.data[i][j] / other.data[i][j]
+                result[i, j] = self[i, j] / other[i, j]
 
         return result
 
     def __rtruediv__(self, other):
         """Деление справа"""
         if isinstance(other, (int, float)):
-            result = Matrix(shape=self.shape)
+            result = array(shape=self.shape)
             for i in range(self.shape[0]):
                 for j in range(self.shape[1]):
                     if self.data[i][j] == 0:
@@ -313,15 +363,15 @@ class Matrix:
                     result[i, j] = other / self.data[i][j]
             return result
 
-        if not isinstance(other, Matrix):
-            other = Matrix(other)
+        if not isinstance(other, array):
+            other = array(other)
 
         if self.shape != other.shape:
             raise ValueError(
                 f"Невозможно разделить поэлементно матрицы разных размеров: {self.shape} и {other.shape}"
             )
 
-        result = Matrix(shape=self.shape)
+        result = array(shape=self.shape)
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
                 if self.data[i][j] == 0:
@@ -332,7 +382,7 @@ class Matrix:
 
     def __neg__(self):
         """Унарный минус"""
-        result = Matrix(shape=self.shape)
+        result = array(shape=self.shape)
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
                 result[i, j] = -self.data[i][j]
@@ -340,9 +390,9 @@ class Matrix:
 
     def __eq__(self, other):
         """Сравнение матриц на равенство"""
-        if not isinstance(other, Matrix):
+        if not isinstance(other, array):
             try:
-                other = Matrix(other)
+                other = array(other)
             except:
                 return False
 
@@ -351,37 +401,126 @@ class Matrix:
 
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
-                if self.data[i][j] != other.data[i][j]:
+                if self[i, j] != other[i, j]:
                     return False
 
         return True
 
     def __matmul__(self, other):
         """Матричное умножение"""
-        if not isinstance(other, Matrix):
-            other = Matrix(other)
+        if not isinstance(other, array):
+            other = array(other)
 
         if self.shape[1] != other.shape[0]:
             raise ValueError(
                 f"Невозможно выполнить матричное умножение: {self.shape} и {other.shape}"
             )
 
-        result = Matrix(shape=(self.shape[0], other.shape[1]))
+        result = array(shape=(self.shape[0], other.shape[1]))
 
         for i in range(self.shape[0]):
             for j in range(other.shape[1]):
                 sum_val = 0
                 for k in range(self.shape[1]):
-                    sum_val += self.data[i][k] * other.data[k][j]
+                    sum_val += self[i, k] * other[k, j]
                 result[i, j] = sum_val
 
         return result
 
-    def astype(self, dtype):
-        result = Matrix(shape=self.shape)
+    def __lt__(self, other):
+        """Поэлементное сравнение 'меньше чем' (self < other)"""
+        if isinstance(other, (int, float)):
+            result = array(shape=self.shape)
+            for i in range(self.shape[0]):
+                for j in range(self.shape[1]):
+                    result[i, j] = 1.0 if self[i, j] < other else 0.0
+            return result
+
+        if not isinstance(other, array):
+            other = array(other)
+
+        if self.shape != other.shape:
+            raise ValueError(
+                f"Невозможно сравнить матрицы разных размеров: {self.shape} и {other.shape}"
+            )
+
+        result = array(shape=self.shape)
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
-                result[i, j] = dtype(self.data[i][j])
+                result[i, j] = 1.0 if self[i, j] < other[i, j] else 0.0
+
+        return result
+
+    def __gt__(self, other):
+        """Поэлементное сравнение 'больше чем' (self > other)"""
+        if isinstance(other, (int, float)):
+            result = array(shape=self.shape)
+            for i in range(self.shape[0]):
+                for j in range(self.shape[1]):
+                    result[i, j] = 1.0 if self[i, j] > other else 0.0
+            return result
+
+        if not isinstance(other, array):
+            other = array(other)
+
+        if self.shape != other.shape:
+            raise ValueError(
+                f"Невозможно сравнить матрицы разных размеров: {self.shape} и {other.shape}"
+            )
+
+        result = array(shape=self.shape)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                result[i, j] = 1.0 if self[i, j] > other[i, j] else 0.0
+
+        return result
+
+    def __le__(self, other):
+        """Поэлементное сравнение 'меньше или равно' (self <= other)"""
+        if isinstance(other, (int, float)):
+            result = array(shape=self.shape)
+            for i in range(self.shape[0]):
+                for j in range(self.shape[1]):
+                    result[i, j] = 1.0 if self[i, j] <= other else 0.0
+            return result
+
+        if not isinstance(other, array):
+            other = array(other)
+
+        if self.shape != other.shape:
+            raise ValueError(
+                f"Невозможно сравнить матрицы разных размеров: {self.shape} и {other.shape}"
+            )
+
+        result = array(shape=self.shape)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                result[i, j] = 1.0 if self[i, j] <= other[i, j] else 0.0
+
+        return result
+
+    def __ge__(self, other):
+        """Поэлементное сравнение 'больше или равно' (self >= other)"""
+        if isinstance(other, (int, float)):
+            result = array(shape=self.shape)
+            for i in range(self.shape[0]):
+                for j in range(self.shape[1]):
+                    result[i, j] = 1.0 if self[i, j] >= other else 0.0
+            return result
+
+        if not isinstance(other, array):
+            other = array(other)
+
+        if self.shape != other.shape:
+            raise ValueError(
+                f"Невозможно сравнить матрицы разных размеров: {self.shape} и {other.shape}"
+            )
+
+        result = array(shape=self.shape)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                result[i, j] = 1.0 if self[i, j] >= other[i, j] else 0.0
+
         return result
 
     def swap(self, i, j, axis=0):
@@ -474,152 +613,18 @@ class Matrix:
         """Прибавляет k * строку j к строке i (для совместимости). Используйте comb_lines(i, j, k, axis=0)."""
         return self.comb(i, j, k, axis=0)
 
-    @property
-    def T(self):
-        """Транспонирование матрицы"""
-        result = Matrix(shape=(self.shape[1], self.shape[0]))
-
-        for i in range(self.shape[0]):
-            for j in range(self.shape[1]):
-                result[j, i] = self.data[i][j]
-
-        return result
-
-    @property
-    def det(self):
-        """Вычисление определителя матрицы"""
-        if self.shape[0] != self.shape[1]:
-            raise ValueError(
-                "Определитель можно вычислить только для квадратной матрицы"
-            )
-
-        n = self.shape[0]
-
-        if n == 1:
-            return self.data[0][0]
-
-        if n == 2:
-            return self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][0]
-
-        determinant = 0
-        for j in range(n):
-            # Создаем подматрицу, исключая первую строку и j-й столбец
-            submatrix = []
-            for i in range(1, n):
-                row = []
-                for k in range(n):
-                    if k != j:
-                        row.append(self.data[i][k])
-                submatrix.append(row)
-
-            # Рекурсивно вычисляем определитель подматрицы
-            sign = (-1) ** j
-            determinant += sign * self.data[0][j] * Matrix(submatrix).det
-
-        return determinant
-
-    @property
-    def inv(self):
-        """Вычисление обратной матрицы"""
-        if self.shape[0] != self.shape[1]:
-            raise ValueError(
-                "Обратную матрицу можно вычислить только для квадратной матрицы"
-            )
-
-        det = self.det
-        if abs(det) < 1e-10:
-            raise ValueError("Матрица вырожденная, обратной не существует")
-
-        n = self.shape[0]
-
-        if n == 1:
-            return Matrix([[1 / self.data[0][0]]])
-
-        # Матрица алгебраических дополнений
-        cofactors = Matrix(shape=(n, n))
-
-        for i in range(n):
-            for j in range(n):
-                # Создаем подматрицу, исключая i-ю строку и j-й столбец
-                submatrix = []
-                for r in range(n):
-                    if r != i:
-                        row = []
-                        for c in range(n):
-                            if c != j:
-                                row.append(self.data[r][c])
-                        submatrix.append(row)
-
-                # Вычисляем минор и алгебраическое дополнение
-                sign = (-1) ** (i + j)
-                cofactors[i, j] = sign * Matrix(submatrix).det
-
-        # Транспонируем матрицу алгебраических дополнений и делим на определитель
-        return cofactors.T * (1 / det)
-
-    @property
-    def rank(self):
-        """Вычисление ранга матрицы"""
-        # Создаем копию матрицы для приведения к ступенчатому виду
-        m = Matrix(self)
-        rows, cols = m.shape
-
-        # Приведение к ступенчатому виду
-        rank = 0
-        row_used = [False] * rows
-
-        for j in range(cols):
-            for i in range(rows):
-                if not row_used[i] and abs(m.data[i][j]) > 1e-10:
-                    rank += 1
-                    row_used[i] = True
-
-                    # Нормализация строки
-                    pivot = m.data[i][j]
-                    for k in range(j, cols):
-                        m.data[i][k] /= pivot
-
-                    # Вычитание из других строк
-                    for k in range(rows):
-                        if k != i and abs(m.data[k][j]) > 1e-10:
-                            factor = m.data[k][j]
-                            for l in range(j, cols):
-                                m.data[k][l] -= factor * m.data[i][l]
-
-                    break
-
-        return rank
-
-    @property
-    def trace(self):
-        """Вычисление следа матрицы"""
-        if self.shape[0] != self.shape[1]:
-            raise ValueError("След можно вычислить только для квадратной матрицы")
-
-        trace_sum = 0
-        for i in range(self.shape[0]):
-            trace_sum += self.data[i][i]
-
-        return trace_sum
-
-    @property
-    def diag(self):
-        """Возвращает диагональ матрицы в виде списка"""
-        min_dim = min(self.shape)
-        return [self.data[i][i] for i in range(min_dim)]
-
     def apply(self, func):
         """Применяет функцию к каждому элементу матрицы"""
-        result = Matrix(shape=self.shape)
+        result = array(shape=self.shape)
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
-                result[i, j] = func(self.data[i][j])
+                result[i, j] = func(self[i, j])
         return result
 
     def copy(self):
         """Создает копию матрицы"""
-        return Matrix(self)
+        return array(self)
 
 
-class array(Matrix):
+class array(array):
     pass

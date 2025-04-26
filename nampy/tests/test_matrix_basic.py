@@ -4,25 +4,25 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from base import Matrix
+from base import array
 
 
 class TestMatrixBasic(unittest.TestCase):
     def test_init(self):
         """Тестирование инициализации матрицы"""
         data = [[1, 2, 3], [4, 5, 6]]
-        m = Matrix(data)
+        m = array(data)
         self.assertEqual(m.shape, (2, 3))
         self.assertEqual(m.data, data)
 
-        m = Matrix(shape=(2, 3), fill_value=7)
+        m = array(shape=(2, 3), fill_value=7)
         self.assertEqual(m.shape, (2, 3))
         for i in range(2):
             for j in range(3):
                 self.assertEqual(m.data[i][j], 7)
 
-        m1 = Matrix(data)
-        m2 = Matrix(m1)
+        m1 = array(data)
+        m2 = array(m1)
         self.assertEqual(m1.shape, m2.shape)
         self.assertEqual(m1.data, m2.data)
         m1.data[0][0] = 99
@@ -30,7 +30,7 @@ class TestMatrixBasic(unittest.TestCase):
 
     def test_getitem_setitem(self):
         """Тестирование получения и установки элементов"""
-        m = Matrix([[1, 2, 3], [4, 5, 6]])
+        m = array([[1, 2, 3], [4, 5, 6]])
 
         self.assertEqual(m[0, 0], 1)
         self.assertEqual(m[1, 2], 6)
@@ -46,9 +46,9 @@ class TestMatrixBasic(unittest.TestCase):
 
     def test_eq(self):
         """Тестирование сравнения матриц"""
-        m1 = Matrix([[1, 2], [3, 4]])
-        m2 = Matrix([[1, 2], [3, 4]])
-        m3 = Matrix([[1, 2], [3, 5]])
+        m1 = array([[1, 2], [3, 4]])
+        m2 = array([[1, 2], [3, 4]])
+        m3 = array([[1, 2], [3, 5]])
 
         self.assertTrue(m1 == m2)
         self.assertFalse(m1 == m3)
@@ -57,7 +57,7 @@ class TestMatrixBasic(unittest.TestCase):
 
     def test_copy(self):
         """Тестирование создания копии матрицы"""
-        m1 = Matrix([[1, 2], [3, 4]])
+        m1 = array([[1, 2], [3, 4]])
         m2 = m1.copy()
 
         self.assertEqual(m1.data, m2.data)
